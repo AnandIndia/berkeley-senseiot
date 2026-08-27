@@ -1,6 +1,6 @@
 /**
- * Berkeley SenseIoT - Backend Server
- * Runtime: Node.js (via agy-node or standard node)
+ * Berkeley SenseIoT - Backend Server & Embedded Frontend
+ * Defined by Trust • Powered by Node.js
  */
 
 const http = require('http');
@@ -775,7 +775,6 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon'
 };
 
-
 // --- Embedded Static Assets Fallback ---
 const EMBEDDED_ASSETS = {
   '/': "<!DOCTYPE html>\n<html lang=\"en\" data-theme=\"dark\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Berkeley SenseIoT - IoT Asset Telemetry & CAFM Integration Portal</title>\n  <link rel=\"stylesheet\" href=\"styles.css\">\n  <!-- Lucide Icons -->\n  <script src=\"https://unpkg.com/lucide@latest\"></script>\n</head>\n<body>\n\n<div class=\"app-container\">\n\n  <!-- Sidebar Navigation -->\n  <aside class=\"sidebar\" id=\"sidebar\">\n    <div class=\"brand-header\">\n      <img src=\"assets/berkeley-logo.png\" alt=\"Berkeley - Defined by Trust\" class=\"brand-logo-img\" onerror=\"this.style.display='none'; document.getElementById('textLogoFallback').style.display='flex';\">\n      <div id=\"textLogoFallback\" style=\"display:none; align-items:center; gap:8px;\">\n        <div style=\"display:flex; flex-direction:column; gap:2px;\">\n          <span style=\"height:3px; width:18px; background:#2B388F;\"></span>\n          <span style=\"height:3px; width:18px; background:#00843D;\"></span>\n          <span style=\"height:3px; width:18px; background:#F4981C;\"></span>\n          <span style=\"height:3px; width:18px; background:#C01E2E;\"></span>\n        </div>\n        <div class=\"brand-text\">\n          <div class=\"brand-title\">Berkeley <span class=\"brand-badge\">SenseIoT</span></div>\n          <div class=\"brand-subtitle\">DEFINED BY TRUST</div>\n        </div>\n      </div>\n    </div>\n    \n    <!-- 4-Color Brand Stripe -->\n    <div class=\"berkeley-stripe\"></div>\n\n    <nav class=\"sidebar-nav\">\n      <div class=\"nav-section-title\">Operations</div>\n      <a class=\"nav-item active\" data-view=\"dashboard\" id=\"nav-dashboard\">\n        <i data-lucide=\"layout-dashboard\"></i>\n        <span>Dashboard</span>\n      </a>\n      <a class=\"nav-item\" data-view=\"assets\" id=\"nav-assets\">\n        <i data-lucide=\"boxes\"></i>\n        <span>Assets</span>\n        <span class=\"nav-pill\" id=\"nav-assets-count\">4</span>\n      </a>\n      <a class=\"nav-item\" data-view=\"sensors\" id=\"nav-sensors\">\n        <i data-lucide=\"activity\"></i>\n        <span>Sensors & Status</span>\n      </a>\n      <a class=\"nav-item\" data-view=\"gateways\" id=\"nav-gateways\">\n        <i data-lucide=\"router\"></i>\n        <span>IoT Gateways</span>\n        <span class=\"nav-pill\" id=\"nav-gateways-count\">3</span>\n      </a>\n      <a class=\"nav-item\" data-view=\"alarms\" id=\"nav-alarms\">\n        <i data-lucide=\"bell-ring\"></i>\n        <span>Alarms & Incidents</span>\n        <span class=\"nav-pill danger\" id=\"nav-alarms-count\">1</span>\n      </a>\n\n      <div class=\"nav-section-title\">Configuration</div>\n      <a class=\"nav-item\" data-view=\"settings\" id=\"nav-settings\">\n        <i data-lucide=\"sliders\"></i>\n        <span>Settings & Workflows</span>\n      </a>\n    </nav>\n\n    <div class=\"sidebar-footer\">\n      <div class=\"system-status-indicator\">\n        <span class=\"status-dot\"></span>\n        <span>Gateway Ingest: <strong>Active (100 pkts/m)</strong></span>\n      </div>\n      <button class=\"top-btn\" id=\"btnOpenMobileView\" style=\"width:100%; justify-content:center;\">\n        <i data-lucide=\"smartphone\"></i>\n        <span>Mobile App View</span>\n      </button>\n    </div>\n  </aside>\n\n  <!-- Main View Area -->\n  <main class=\"main-wrapper\">\n\n    <!-- Top Header -->\n    <header class=\"top-header\">\n      <div class=\"header-left\">\n        <button class=\"top-btn\" id=\"btnToggleSidebar\" style=\"display:none;\">\n          <i data-lucide=\"menu\"></i>\n        </button>\n        <div class=\"view-title-wrap\">\n          <h1 class=\"view-title\" id=\"currentViewTitle\">\n            <i data-lucide=\"layout-dashboard\" class=\"title-icon\"></i>\n            <span>Fleet Dashboard & IoT Overview</span>\n          </h1>\n          <span class=\"view-breadcrumbs\" id=\"viewBreadcrumb\">Berkeley SenseIoT &gt; Real-Time Telemetry</span>\n        </div>\n      </div>\n\n      <div class=\"header-right\">\n        <!-- Live Clock -->\n        <span style=\"font-size:0.8rem; color:var(--text-muted); font-family:monospace;\" id=\"liveClock\">--:--:--</span>\n\n        <!-- Theme Toggle -->\n        <button class=\"top-btn\" id=\"btnToggleTheme\" title=\"Toggle Light/Dark Theme\">\n          <i data-lucide=\"sun\" id=\"themeIcon\"></i>\n        </button>\n\n        <!-- Primary Action Button (Dynamic) -->\n        <button class=\"top-btn primary\" id=\"btnHeaderAction\">\n          <i data-lucide=\"plus\"></i>\n          <span>Add Asset</span>\n        </button>\n      </div>\n    </header>\n\n    <!-- Quick Fault Injection & Simulation Banner -->\n    <div class=\"fault-bar\">\n      <div class=\"fault-bar-title\">\n        <i data-lucide=\"zap\"></i>\n        <span>IoT Telemetry Simulator:</span>\n      </div>\n      <div class=\"fault-actions\">\n        <button class=\"fault-pill-btn\" onclick=\"injectFault('AST-101', 'temperature', 89.4, 'Chiller 01 Overheat')\">\n          <i data-lucide=\"flame\"></i>\n          <span>Simulate Chiller Overheat (89.4°C)</span>\n        </button>\n        <button class=\"fault-pill-btn\" onclick=\"injectFault('AST-103', 'vibration', 7.4, 'Pump 02 Bearing Failure')\">\n          <i data-lucide=\"activity\"></i>\n          <span>Simulate Pump Bearing Spike (7.4 mm/s)</span>\n        </button>\n        <button class=\"fault-pill-btn\" onclick=\"injectFault('AST-104', 'current', 3450, 'Transformer Overload Surge')\">\n          <i data-lucide=\"alert-triangle\"></i>\n          <span>Simulate Transformer Surge (3450A)</span>\n        </button>\n        <button class=\"fault-pill-btn clear\" onclick=\"clearFaults()\">\n          <i data-lucide=\"check-circle-2\"></i>\n          <span>Normalize Telemetry</span>\n        </button>\n      </div>\n    </div>\n\n    <!-- Dynamic Content Area -->\n    <div class=\"content-area\">\n\n      <!-- ================= 1. DASHBOARD VIEW ================= -->\n      <section class=\"view-pane active\" id=\"pane-dashboard\">\n        <!-- Stats Row -->\n        <div class=\"stats-grid\">\n          <div class=\"stat-card\">\n            <div class=\"stat-card-stripe blue\"></div>\n            <div class=\"stat-header\">\n              <span class=\"stat-label\">Monitored Assets</span>\n              <div class=\"stat-icon\"><i data-lucide=\"boxes\"></i></div>\n            </div>\n            <div class=\"stat-value\" id=\"kpi-total-assets\">4</div>\n            <div class=\"stat-subtext\" id=\"kpi-asset-subtext\">\n              <span style=\"color:#34D399;\">3 Healthy</span> &bull; \n              <span style=\"color:#FBBF24;\">1 Warning</span> &bull; \n              <span style=\"color:#F87171;\">0 Critical</span>\n            </div>\n          </div>\n\n          <div class=\"stat-card\">\n            <div class=\"stat-card-stripe green\"></div>\n            <div class=\"stat-header\">\n              <span class=\"stat-label\">IoT Gateways</span>\n              <div class=\"stat-icon\" style=\"background:rgba(0,132,61,0.12); color:#34D399;\"><i data-lucide=\"router\"></i></div>\n            </div>\n            <div class=\"stat-value\" id=\"kpi-gateways\">3 / 3</div>\n            <div class=\"stat-subtext\" style=\"color:#34D399;\">\n              <i data-lucide=\"wifi\" style=\"width:12px; height:12px;\"></i> All Gateways Online (Avg 18ms)\n            </div>\n          </div>\n\n          <div class=\"stat-card\">\n            <div class=\"stat-card-stripe orange\"></div>\n            <div class=\"stat-header\">\n              <span class=\"stat-label\">Active Sensors</span>\n              <div class=\"stat-icon\" style=\"background:rgba(244,152,28,0.12); color:#FBBF24;\"><i data-lucide=\"gauge\"></i></div>\n            </div>\n            <div class=\"stat-value\" id=\"kpi-sensors\">12</div>\n            <div class=\"stat-subtext\">Streaming at 200 msgs/min</div>\n          </div>\n\n          <div class=\"stat-card\">\n            <div class=\"stat-card-stripe red\"></div>\n            <div class=\"stat-header\">\n              <span class=\"stat-label\">Facilio CAFM Work Orders</span>\n              <div class=\"stat-icon\" style=\"background:rgba(192,30,46,0.12); color:#F87171;\"><i data-lucide=\"clipboard-check\"></i></div>\n            </div>\n            <div class=\"stat-value\" id=\"kpi-facilio-wo\">1 Active</div>\n            <div class=\"stat-subtext\" style=\"color:#60A5FA;\">2-Way Sync Connected</div>\n          </div>\n        </div>\n\n        <!-- Fleet Health & Telemetry Trend Row -->\n        <div style=\"display:grid; grid-template-columns: 2fr 1fr; gap:20px; margin-bottom:24px;\">\n          <!-- Telemetry Live Trend Analytics -->\n          <div class=\"section-card\" style=\"margin-bottom:0;\">\n            <div class=\"section-header\">\n              <div class=\"section-title\">\n                <i data-lucide=\"line-chart\" style=\"color:#60A5FA;\"></i>\n                <span>Live Asset Telemetry Trend Analytics</span>\n              </div>\n              <div class=\"section-tools\">\n                <select class=\"form-select\" id=\"trendAssetSelect\" style=\"padding:4px 8px; font-size:0.78rem;\">\n                  <!-- Options filled dynamically -->\n                </select>\n                <select class=\"form-select\" id=\"trendTimeframeSelect\" style=\"padding:4px 8px; font-size:0.78rem;\">\n                  <option value=\"1h\">Last 1 Hour</option>\n                  <option value=\"24h\" selected>Last 24 Hours</option>\n                  <option value=\"7d\">Last 7 Days</option>\n                </select>\n              </div>\n            </div>\n            <div class=\"chart-card\">\n              <svg class=\"chart-svg\" id=\"dashboardTelemetrySvg\" viewBox=\"0 0 700 240\"></svg>\n              <div style=\"display:flex; align-items:center; justify-content:space-between; margin-top:10px; font-size:0.78rem; color:var(--text-muted);\" id=\"trendStatsBar\">\n                <span>Mean: --</span>\n                <span>Peak: --</span>\n                <span>Min: --</span>\n                <span style=\"color:var(--bky-orange);\">Threshold: Dynamic</span>\n              </div>\n            </div>\n          </div>\n\n          <!-- Active Alarms & Quick Escalation -->\n          <div class=\"section-card\" style=\"margin-bottom:0; display:flex; flex-direction:column;\">\n            <div class=\"section-header\">\n              <div class=\"section-title\">\n                <i data-lucide=\"alert-octagon\" style=\"color:#F87171;\"></i>\n                <span>Active Alarms & CAFM</span>\n              </div>\n              <button class=\"top-btn\" onclick=\"switchView('alarms')\" style=\"padding:3px 8px; font-size:0.75rem;\">View All</button>\n            </div>\n            <div style=\"padding:14px; overflow-y:auto; flex-grow:1;\" id=\"dashboardAlarmsList\">\n              <!-- Alarms injected dynamically -->\n            </div>\n          </div>\n        </div>\n\n        <!-- Monitored Asset Fleet Grid -->\n        <div class=\"section-card\">\n          <div class=\"section-header\">\n            <div class=\"section-title\">\n              <i data-lucide=\"cpu\" style=\"color:var(--bky-green);\"></i>\n              <span>Monitored Assets & Real-Time Sensor Telemetry</span>\n            </div>\n            <div class=\"section-tools\">\n              <button class=\"top-btn\" onclick=\"openAddAssetModal()\">\n                <i data-lucide=\"plus\"></i> Add Asset\n              </button>\n            </div>\n          </div>\n          <div class=\"asset-grid\" id=\"dashboardAssetGrid\">\n            <!-- Asset Cards injected dynamically -->\n          </div>\n        </div>\n      </section>\n\n      <!-- ================= 2. ASSETS VIEW ================= -->\n      <section class=\"view-pane\" id=\"pane-assets\">\n        <div class=\"section-card\">\n          <div class=\"section-header\">\n            <div class=\"section-title\">\n              <i data-lucide=\"boxes\" style=\"color:#60A5FA;\"></i>\n              <span>Asset Inventory & IoT Sensor Linkage</span>\n            </div>\n            <div class=\"section-tools\">\n              <input type=\"text\" class=\"form-input\" id=\"assetSearchInput\" placeholder=\"Search by name, tag, location...\" style=\"width:240px; padding:6px 12px; font-size:0.82rem;\">\n              <select class=\"form-select\" id=\"assetCategoryFilter\" style=\"padding:6px 10px; font-size:0.82rem;\">\n                <option value=\"ALL\">All Categories</option>\n                <option value=\"HVAC & Cooling\">HVAC & Cooling</option>\n                <option value=\"Air Distribution\">Air Distribution</option>\n                <option value=\"Plumbing & Hydraulic\">Plumbing & Hydraulic</option>\n                <option value=\"Electrical Distribution\">Electrical Distribution</option>\n              </select>\n              <button class=\"top-btn primary\" onclick=\"openAddAssetModal()\">\n                <i data-lucide=\"plus\"></i> Add Asset\n              </button>\n            </div>\n          </div>\n\n          <div class=\"table-container\">\n            <table class=\"sense-table\">\n              <thead>\n                <tr>\n                  <th>Asset Name & Tag</th>\n                  <th>Category / Location</th>\n                  <th>Criticality</th>\n                  <th>IoT Gateway</th>\n                  <th>Connected Sensors</th>\n                  <th>Status / Stateflow</th>\n                  <th>Actions</th>\n                </tr>\n              </thead>\n              <tbody id=\"assetsTableBody\">\n                <!-- Injected dynamically -->\n              </tbody>\n            </table>\n          </div>\n        </div>\n      </section>\n\n      <!-- ================= 3. SENSORS & STATUS VIEW ================= -->\n      <section class=\"view-pane\" id=\"pane-sensors\">\n        <div class=\"section-card\">\n          <div class=\"section-header\">\n            <div class=\"section-title\">\n              <i data-lucide=\"activity\" style=\"color:var(--bky-orange);\"></i>\n              <span>Comprehensive Sensor Matrix & Telemetry Status</span>\n            </div>\n            <div class=\"section-tools\">\n              <select class=\"form-select\" id=\"sensorTypeFilter\" style=\"padding:6px 10px; font-size:0.82rem;\">\n                <option value=\"ALL\">All Sensor Types</option>\n                <option value=\"temperature\">Temperature (°C)</option>\n                <option value=\"vibration\">Vibration (mm/s)</option>\n                <option value=\"pressure\">Pressure (bar)</option>\n                <option value=\"current\">Current / Power (A/kW)</option>\n                <option value=\"humidity\">Humidity (%RH)</option>\n              </select>\n            </div>\n          </div>\n\n          <div class=\"table-container\">\n            <table class=\"sense-table\">\n              <thead>\n                <tr>\n                  <th>Sensor Name & Metric</th>\n                  <th>Installed On Asset</th>\n                  <th>Gateway</th>\n                  <th>Current Value</th>\n                  <th>Warning Limits</th>\n                  <th>Critical Limits</th>\n                  <th>Live Status</th>\n                  <th>Calibrate</th>\n                </tr>\n              </thead>\n              <tbody id=\"sensorsTableBody\">\n                <!-- Injected dynamically -->\n              </tbody>\n            </table>\n          </div>\n        </div>\n      </section>\n\n      <!-- ================= 4. GATEWAYS VIEW ================= -->\n      <section class=\"view-pane\" id=\"pane-gateways\">\n        <div class=\"section-card\">\n          <div class=\"section-header\">\n            <div class=\"section-title\">\n              <i data-lucide=\"router\" style=\"color:var(--bky-green);\"></i>\n              <span>IoT Gateway Connection Hub & Ingestion Management</span>\n            </div>\n            <div class=\"section-tools\">\n              <button class=\"top-btn primary\" onclick=\"openAddGatewayModal()\">\n                <i data-lucide=\"plus\"></i> Register New Gateway\n              </button>\n            </div>\n          </div>\n\n          <div class=\"table-container\">\n            <table class=\"sense-table\">\n              <thead>\n                <tr>\n                  <th>Gateway Name & Model</th>\n                  <th>Protocol / Port</th>\n                  <th>Network Address</th>\n                  <th>API Authentication Key</th>\n                  <th>Heartbeat / Rate</th>\n                  <th>Status</th>\n                  <th>Test & Config</th>\n                </tr>\n              </thead>\n              <tbody id=\"gatewaysTableBody\">\n                <!-- Injected dynamically -->\n              </tbody>\n            </table>\n          </div>\n        </div>\n\n        <!-- Quick Gateway Deployment Code Snippet -->\n        <div class=\"section-card\">\n          <div class=\"section-header\">\n            <div class=\"section-title\">\n              <i data-lucide=\"code\" style=\"color:#38BDF8;\"></i>\n              <span>Physical Gateway Telemetry Ingest Protocol (HTTP / cURL / Python)</span>\n            </div>\n          </div>\n          <div style=\"padding:20px;\">\n            <p style=\"font-size:0.85rem; color:var(--text-secondary); margin-bottom:12px;\">\n              To send real-time data from your edge hardware or IoT Gateway (Advantech, Teltonika, Raspberry Pi, ESP32) into Berkeley SenseIoT, issue an HTTP POST to:\n              <code style=\"color:#60A5FA; background:rgba(0,0,0,0.3); padding:2px 6px; border-radius:4px;\">http://&lt;server-ip&gt;:3000/api/telemetry/ingest</code>\n            </p>\n            <div class=\"code-block\" id=\"gatewaySnippetCode\">\ncurl -X POST http://localhost:3000/api/telemetry/ingest \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-Gateway-Key: gw_key_central_plant_9918\" \\\n  -d '{\n    \"readings\": [\n      { \"assetId\": \"AST-101\", \"sensorId\": \"SNS-101-1\", \"sensorType\": \"temperature\", \"value\": 12.4 },\n      { \"assetId\": \"AST-101\", \"sensorId\": \"SNS-101-2\", \"sensorType\": \"vibration\", \"value\": 2.15 }\n    ]\n  }'\n            </div>\n          </div>\n        </div>\n      </section>\n\n      <!-- ================= 5. ALARMS & INCIDENTS VIEW ================= -->\n      <section class=\"view-pane\" id=\"pane-alarms\">\n        <div class=\"section-card\">\n          <div class=\"section-header\">\n            <div class=\"section-title\">\n              <i data-lucide=\"bell-ring\" style=\"color:#F87171;\"></i>\n              <span>Alarm Center & Incident Lifecycle</span>\n            </div>\n            <div class=\"section-tools\">\n              <select class=\"form-select\" id=\"alarmSeverityFilter\" style=\"padding:6px 10px; font-size:0.82rem;\">\n                <option value=\"ALL\">All Severities</option>\n                <option value=\"CRITICAL\">Critical Alarms</option>\n                <option value=\"WARNING\">Warning Alarms</option>\n              </select>\n            </div>\n          </div>\n\n          <div class=\"table-container\">\n            <table class=\"sense-table\">\n              <thead>\n                <tr>\n                  <th>Alarm ID & Severity</th>\n                  <th>Target Asset</th>\n                  <th>Trigger Description</th>\n                  <th>Breached Value</th>\n                  <th>Timestamp</th>\n                  <th>Facilio CAFM Work Order</th>\n                  <th>Lifecycle Actions</th>\n                </tr>\n              </thead>\n              <tbody id=\"alarmsTableBody\">\n                <!-- Injected dynamically -->\n              </tbody>\n            </table>\n          </div>\n        </div>\n      </section>\n\n      <!-- ================= 6. SETTINGS & CUSTOMIZATION VIEW ================= -->\n      <section class=\"view-pane\" id=\"pane-settings\">\n        <!-- Settings Tabs -->\n        <div class=\"section-card\" style=\"margin-bottom:20px;\">\n          <div class=\"tabs-strip\">\n            <button class=\"tab-btn active\" onclick=\"switchSettingsTab('tab-stateflow')\">\n              <i data-lucide=\"git-merge\" style=\"width:15px; height:15px; display:inline; vertical-align:middle; margin-right:4px;\"></i>\n              Process Flow & Stateflow Engine\n            </button>\n            <button class=\"tab-btn\" onclick=\"switchSettingsTab('tab-customfields')\">\n              <i data-lucide=\"form-input\" style=\"width:15px; height:15px; display:inline; vertical-align:middle; margin-right:4px;\"></i>\n              Dynamic Custom Fields\n            </button>\n            <button class=\"tab-btn\" onclick=\"switchSettingsTab('tab-facilio')\">\n              <i data-lucide=\"link\" style=\"width:15px; height:15px; display:inline; vertical-align:middle; margin-right:4px;\"></i>\n              Facilio CAFM Integration\n            </button>\n            <button class=\"tab-btn\" onclick=\"switchSettingsTab('tab-users')\">\n              <i data-lucide=\"users\" style=\"width:15px; height:15px; display:inline; vertical-align:middle; margin-right:4px;\"></i>\n              User Access & Roles\n            </button>\n          </div>\n\n          <!-- TAB 1: Process Flow & Stateflow Builder -->\n          <div class=\"settings-subtab-pane active\" id=\"tab-stateflow\" style=\"padding:24px;\">\n            <div style=\"display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;\">\n              <div>\n                <h3 style=\"font-size:1.05rem; font-weight:700; margin-bottom:4px;\">Visual Stateflow & Asset Lifecycle Engine</h3>\n                <p style=\"font-size:0.82rem; color:var(--text-muted);\">Defines the automated state machine from normal IoT sensor monitoring through critical fault escalation and Facilio work order closure.</p>\n              </div>\n            </div>\n\n            <!-- Visual State Flow Pipeline -->\n            <div class=\"stateflow-chain\" id=\"stateflowVisualPipeline\">\n              <!-- States rendered dynamically -->\n            </div>\n\n            <!-- Stateflow Transition Rules Table -->\n            <div style=\"margin-top:24px;\">\n              <h4 style=\"font-size:0.9rem; font-weight:700; margin-bottom:10px; color:var(--text-secondary);\">State Transition & Automated Action Rules</h4>\n              <div class=\"table-container\">\n                <table class=\"sense-table\">\n                  <thead>\n                    <tr>\n                      <th>Origin State</th>\n                      <th>Target State</th>\n                      <th>Trigger Condition</th>\n                      <th>Automated System Action</th>\n                    </tr>\n                  </thead>\n                  <tbody id=\"stateflowTransitionsTable\">\n                    <!-- Injected dynamically -->\n                  </tbody>\n                </table>\n              </div>\n            </div>\n          </div>\n\n          <!-- TAB 2: Custom Fields Builder -->\n          <div class=\"settings-subtab-pane\" id=\"tab-customfields\" style=\"display:none; padding:24px;\">\n            <div style=\"display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;\">\n              <div>\n                <h3 style=\"font-size:1.05rem; font-weight:700; margin-bottom:4px;\">Dynamic Custom Fields Schema</h3>\n                <p style=\"font-size:0.82rem; color:var(--text-muted);\">Create custom fields on Assets, Sensors, or Gateways (e.g. Serial Number, Warranty, Contractor, Modbus Offset). Fields instantly appear in all forms.</p>\n              </div>\n              <button class=\"top-btn primary\" onclick=\"openAddCustomFieldModal()\">\n                <i data-lucide=\"plus\"></i> Add Custom Field\n              </button>\n            </div>\n\n            <div class=\"table-container\">\n              <table class=\"sense-table\">\n                <thead>\n                  <tr>\n                    <th>Entity Type</th>\n                    <th>Field Label</th>\n                    <th>Field Key</th>\n                    <th>Data Type</th>\n                    <th>Required</th>\n                    <th>Default Value</th>\n                    <th>Actions</th>\n                  </tr>\n                </thead>\n                <tbody id=\"customFieldsTableBody\">\n                  <!-- Injected dynamically -->\n                </tbody>\n              </table>\n            </div>\n          </div>\n\n          <!-- TAB 3: Facilio CAFM Integration -->\n          <div class=\"settings-subtab-pane\" id=\"tab-facilio\" style=\"display:none; padding:24px;\">\n            <div style=\"display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;\">\n              <div>\n                <h3 style=\"font-size:1.05rem; font-weight:700; margin-bottom:4px;\">Facilio CAFM Portal Connector</h3>\n                <p style=\"font-size:0.82rem; color:var(--text-muted);\">Configure 2-way integration with Facilio to auto-generate emergency Work Orders when sensors breach safety limits.</p>\n              </div>\n              <button class=\"top-btn\" onclick=\"testFacilioConnection()\">\n                <i data-lucide=\"refresh-cw\"></i> Test API Connection\n              </button>\n            </div>\n\n            <form id=\"facilioConfigForm\" style=\"display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:24px;\">\n              <div class=\"form-group\">\n                <label class=\"form-label\">Facilio API Base URL</label>\n                <input type=\"text\" class=\"form-input\" id=\"fclBaseUrl\" value=\"https://app.facilio.com/api/v3\">\n              </div>\n              <div class=\"form-group\">\n                <label class=\"form-label\">Organization ID</label>\n                <input type=\"text\" class=\"form-input\" id=\"fclOrgId\" value=\"FACILIO_BERKELEY_904\">\n              </div>\n              <div class=\"form-group\">\n                <label class=\"form-label\">Client API Key / Bearer Token</label>\n                <input type=\"password\" class=\"form-input\" id=\"fclApiKey\" value=\"fc_live_9488a912e734bc0082f1\">\n              </div>\n              <div class=\"form-group\">\n                <label class=\"form-label\">Default CAFM Site ID</label>\n                <input type=\"text\" class=\"form-input\" id=\"fclSiteId\" value=\"SITE_BERKELEY_HQ\">\n              </div>\n              <div class=\"form-group\" style=\"grid-column: span 2;\">\n                <label style=\"display:flex; align-items:center; gap:8px; font-size:0.88rem; cursor:pointer;\">\n                  <input type=\"checkbox\" id=\"fclAutoDispatch\" checked style=\"width:16px; height:16px;\">\n                  <span>Automatically dispatch Work Orders to Facilio on CRITICAL asset alarms</span>\n                </label>\n              </div>\n              <div style=\"grid-column: span 2; display:flex; justify-content:flex-end;\">\n                <button type=\"button\" class=\"top-btn primary\" onclick=\"saveFacilioConfig()\">Save CAFM Settings</button>\n              </div>\n            </form>\n\n            <h4 style=\"font-size:0.9rem; font-weight:700; margin-bottom:10px; color:var(--text-secondary);\">Recent Facilio CAFM Dispatch Logs</h4>\n            <div class=\"table-container\">\n              <table class=\"sense-table\">\n                <thead>\n                  <tr>\n                    <th>Timestamp</th>\n                    <th>Action</th>\n                    <th>Target Asset</th>\n                    <th>Facilio Ticket ID</th>\n                    <th>Status</th>\n                    <th>Inspector</th>\n                  </tr>\n                </thead>\n                <tbody id=\"facilioLogsTableBody\">\n                  <!-- Injected dynamically -->\n                </tbody>\n              </table>\n            </div>\n          </div>\n\n          <!-- TAB 4: Users -->\n          <div class=\"settings-subtab-pane\" id=\"tab-users\" style=\"display:none; padding:24px;\">\n            <div style=\"display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;\">\n              <div>\n                <h3 style=\"font-size:1.05rem; font-weight:700; margin-bottom:4px;\">Team & Role Management</h3>\n                <p style=\"font-size:0.82rem; color:var(--text-muted);\">Manage facility engineers, control room operators, and admin access rights.</p>\n              </div>\n              <button class=\"top-btn primary\" onclick=\"openAddUserModal()\">\n                <i data-lucide=\"user-plus\"></i> Add Team Member\n              </button>\n            </div>\n\n            <div class=\"table-container\">\n              <table class=\"sense-table\">\n                <thead>\n                  <tr>\n                    <th>Name</th>\n                    <th>Email Address</th>\n                    <th>Department</th>\n                    <th>Access Role</th>\n                    <th>Status</th>\n                  </tr>\n                </thead>\n                <tbody id=\"usersTableBody\">\n                  <!-- Injected dynamically -->\n                </tbody>\n              </table>\n            </div>\n          </div>\n        </div>\n      </section>\n\n    </div>\n  </main>\n</div>\n\n<!-- ================= MODALS ================= -->\n\n<!-- 1. Add/Edit Asset Modal -->\n<div class=\"modal-overlay\" id=\"modalAddAsset\">\n  <div class=\"modal-box\">\n    <div class=\"modal-header\">\n      <h3 class=\"modal-title\" id=\"assetModalTitle\">Add New Monitored Asset</h3>\n      <button class=\"modal-close-btn\" onclick=\"closeModal('modalAddAsset')\">&times;</button>\n    </div>\n    <div class=\"modal-body\">\n      <div class=\"form-row\">\n        <div class=\"form-group\">\n          <label class=\"form-label\">Asset Name *</label>\n          <input type=\"text\" class=\"form-input\" id=\"inAssetName\" placeholder=\"e.g. Chiller 02 Primary Loop\">\n        </div>\n        <div class=\"form-group\">\n          <label class=\"form-label\">Asset Tag / Code *</label>\n          <input type=\"text\" class=\"form-input\" id=\"inAssetTag\" placeholder=\"e.g. CH-02-B2\">\n        </div>\n      </div>\n      <div class=\"form-row\">\n        <div class=\"form-group\">\n          <label class=\"form-label\">Category</label>\n          <select class=\"form-select\" id=\"inAssetCategory\">\n            <option value=\"HVAC & Cooling\">HVAC & Cooling</option>\n            <option value=\"Air Distribution\">Air Distribution</option>\n            <option value=\"Plumbing & Hydraulic\">Plumbing & Hydraulic</option>\n            <option value=\"Electrical Distribution\">Electrical Distribution</option>\n            <option value=\"Elevators & Conveyance\">Elevators & Conveyance</option>\n          </select>\n        </div>\n        <div class=\"form-group\">\n          <label class=\"form-label\">Criticality</label>\n          <select class=\"form-select\" id=\"inAssetCriticality\">\n            <option value=\"CRITICAL\">CRITICAL (High Impact)</option>\n            <option value=\"HIGH\" selected>HIGH</option>\n            <option value=\"MEDIUM\">MEDIUM</option>\n            <option value=\"LOW\">LOW</option>\n          </select>\n        </div>\n      </div>\n      <div class=\"form-row\">\n        <div class=\"form-group\">\n          <label class=\"form-label\">Location / Room</label>\n          <input type=\"text\" class=\"form-input\" id=\"inAssetLocation\" placeholder=\"e.g. Basement 2 Plant Room\">\n        </div>\n        <div class=\"form-group\">\n          <label class=\"form-label\">Linked IoT Gateway</label>\n          <select class=\"form-select\" id=\"inAssetGateway\">\n            <!-- Populated dynamically -->\n          </select>\n        </div>\n      </div>\n\n      <!-- Dynamic Custom Fields Container -->\n      <div id=\"assetCustomFieldsContainer\" style=\"border-top:1px solid var(--border-color); padding-top:12px;\">\n        <h4 style=\"font-size:0.82rem; color:var(--text-secondary); margin-bottom:8px;\">Custom Fields</h4>\n        <div class=\"form-row\" id=\"assetCustomFieldsInputs\">\n          <!-- Populated from schema -->\n        </div>\n      </div>\n    </div>\n    <div class=\"modal-footer\">\n      <button class=\"top-btn\" onclick=\"closeModal('modalAddAsset')\">Cancel</button>\n      <button class=\"top-btn primary\" onclick=\"submitSaveAsset()\">Save Asset</button>\n    </div>\n  </div>\n</div>\n\n<!-- 2. Add Sensor to Asset Modal -->\n<div class=\"modal-overlay\" id=\"modalAddSensor\">\n  <div class=\"modal-box\">\n    <div class=\"modal-header\">\n      <h3 class=\"modal-title\">Attach Sensor to Asset</h3>\n      <button class=\"modal-close-btn\" onclick=\"closeModal('modalAddSensor')\">&times;</button>\n    </div>\n    <div class=\"modal-body\">\n      <input type=\"hidden\" id=\"inSensorAssetId\">\n      <div class=\"form-group\">\n        <label class=\"form-label\">Sensor Name *</label>\n        <input type=\"text\" class=\"form-input\" id=\"inSensorName\" placeholder=\"e.g. Motor Casing Vibration\">\n      </div>\n      <div class=\"form-row\">\n        <div class=\"form-group\">\n          <label class=\"form-label\">Sensor Type</label>\n          <select class=\"form-select\" id=\"inSensorType\" onchange=\"autoFillSensorUnit(this.value)\">\n            <option value=\"temperature\">Temperature</option>\n            <option value=\"vibration\">Vibration (Velocity RMS)</option>\n            <option value=\"pressure\">Pressure</option>\n            <option value=\"current\">Current / Power</option>\n            <option value=\"humidity\">Relative Humidity</option>\n            <option value=\"flow\">Flow Rate</option>\n          </select>\n        </div>\n        <div class=\"form-group\">\n          <label class=\"form-label\">Unit of Measure</label>\n          <input type=\"text\" class=\"form-input\" id=\"inSensorUnit\" value=\"°C\">\n        </div>\n      </div>\n      <div class=\"form-row\">\n        <div class=\"form-group\">\n          <label class=\"form-label\">Warning High Threshold</label>\n          <input type=\"number\" step=\"0.1\" class=\"form-input\" id=\"inSensorWarnHigh\" placeholder=\"e.g. 45.0\">\n        </div>\n        <div class=\"form-group\">\n          <label class=\"form-label\">Critical High Threshold</label>\n          <input type=\"number\" step=\"0.1\" class=\"form-input\" id=\"inSensorCritHigh\" placeholder=\"e.g. 60.0\">\n        </div>\n      </div>\n    </div>\n    <div class=\"modal-footer\">\n      <button class=\"top-btn\" onclick=\"closeModal('modalAddSensor')\">Cancel</button>\n      <button class=\"top-btn primary\" onclick=\"submitSaveSensor()\">Attach Sensor</button>\n    </div>\n  </div>\n</div>\n\n<!-- 3. Add Gateway Modal -->\n<div class=\"modal-overlay\" id=\"modalAddGateway\">\n  <div class=\"modal-box\">\n    <div class=\"modal-header\">\n      <h3 class=\"modal-title\">Register New IoT Gateway</h3>\n      <button class=\"modal-close-btn\" onclick=\"closeModal('modalAddGateway')\">&times;</button>\n    </div>\n    <div class=\"modal-body\">\n      <div class=\"form-group\">\n        <label class=\"form-label\">Gateway Name *</label>\n        <input type=\"text\" class=\"form-input\" id=\"inGwName\" placeholder=\"e.g. North Wing AHU Gateway\">\n      </div>\n      <div class=\"form-row\">\n        <div class=\"form-group\">\n          <label class=\"form-label\">Model / Hardware</label>\n          <input type=\"text\" class=\"form-input\" id=\"inGwModel\" placeholder=\"e.g. Teltonika RUT955\">\n        </div>\n        <div class=\"form-group\">\n          <label class=\"form-label\">Protocol</label>\n          <select class=\"form-select\" id=\"inGwProtocol\">\n            <option value=\"HTTP\">HTTP REST Ingest</option>\n            <option value=\"MQTT\">MQTT Broker Stream</option>\n            <option value=\"MODBUS_TCP\">Modbus TCP / IP Bridge</option>\n          </select>\n        </div>\n      </div>\n      <div class=\"form-row\">\n        <div class=\"form-group\">\n          <label class=\"form-label\">IP Address</label>\n          <input type=\"text\" class=\"form-input\" id=\"inGwIp\" value=\"192.168.10.60\">\n        </div>\n        <div class=\"form-group\">\n          <label class=\"form-label\">Location</label>\n          <input type=\"text\" class=\"form-input\" id=\"inGwLocation\" placeholder=\"e.g. Roof Mechanical Deck\">\n        </div>\n      </div>\n    </div>\n    <div class=\"modal-footer\">\n      <button class=\"top-btn\" onclick=\"closeModal('modalAddGateway')\">Cancel</button>\n      <button class=\"top-btn primary\" onclick=\"submitSaveGateway()\">Register Gateway</button>\n    </div>\n  </div>\n</div>\n\n<!-- 4. Add Custom Field Modal -->\n<div class=\"modal-overlay\" id=\"modalAddCustomField\">\n  <div class=\"modal-box\">\n    <div class=\"modal-header\">\n      <h3 class=\"modal-title\">Create Dynamic Custom Field</h3>\n      <button class=\"modal-close-btn\" onclick=\"closeModal('modalAddCustomField')\">&times;</button>\n    </div>\n    <div class=\"modal-body\">\n      <div class=\"form-row\">\n        <div class=\"form-group\">\n          <label class=\"form-label\">Target Entity *</label>\n          <select class=\"form-select\" id=\"inCfEntity\">\n            <option value=\"ASSET\">Asset</option>\n            <option value=\"SENSOR\">Sensor</option>\n            <option value=\"GATEWAY\">IoT Gateway</option>\n          </select>\n        </div>\n        <div class=\"form-group\">\n          <label class=\"form-label\">Field Label *</label>\n          <input type=\"text\" class=\"form-input\" id=\"inCfLabel\" placeholder=\"e.g. Warranty Expiry Date\">\n        </div>\n      </div>\n      <div class=\"form-row\">\n        <div class=\"form-group\">\n          <label class=\"form-label\">Data Type</label>\n          <select class=\"form-select\" id=\"inCfType\">\n            <option value=\"text\">Text (String)</option>\n            <option value=\"number\">Number</option>\n            <option value=\"date\">Date</option>\n            <option value=\"select\">Dropdown Options</option>\n          </select>\n        </div>\n        <div class=\"form-group\">\n          <label class=\"form-label\">Default Value</label>\n          <input type=\"text\" class=\"form-input\" id=\"inCfDefault\" placeholder=\"Optional default\">\n        </div>\n      </div>\n    </div>\n    <div class=\"modal-footer\">\n      <button class=\"top-btn\" onclick=\"closeModal('modalAddCustomField')\">Cancel</button>\n      <button class=\"top-btn primary\" onclick=\"submitSaveCustomField()\">Save Field</button>\n    </div>\n  </div>\n</div>\n\n<!-- 5. Mobile Companion View Modal Simulator -->\n<div class=\"mobile-simulator-modal\" id=\"modalMobileSimulator\">\n  <div class=\"phone-mockup\">\n    <div class=\"phone-notch\">\n      <div class=\"notch-camera\"></div>\n    </div>\n    <div class=\"phone-screen\">\n      <!-- Mobile Top Header -->\n      <div class=\"mobile-nav-bar\">\n        <div style=\"display:flex; align-items:center; gap:6px;\">\n          <img src=\"assets/berkeley-logo.png\" alt=\"Logo\" style=\"height:24px;\">\n          <span style=\"font-size:0.8rem; font-weight:800;\">SenseIoT Field</span>\n        </div>\n        <button class=\"top-btn\" style=\"padding:2px 6px; font-size:0.7rem;\" onclick=\"closeModal('modalMobileSimulator')\">✕ Close</button>\n      </div>\n\n      <div class=\"berkeley-stripe\"></div>\n\n      <!-- Mobile Content (Technician View) -->\n      <div style=\"padding:14px; flex-grow:1; overflow-y:auto;\" id=\"mobileScreenBody\">\n        <!-- Injected dynamically -->\n      </div>\n\n      <!-- Mobile Bottom Navigation -->\n      <div class=\"mobile-bottom-bar\">\n        <button class=\"mobile-tab-btn active\" onclick=\"renderMobileView('home')\">\n          <i data-lucide=\"home\" style=\"width:16px; height:16px;\"></i>\n          <span>Assets</span>\n        </button>\n        <button class=\"mobile-tab-btn\" onclick=\"renderMobileView('scanner')\">\n          <i data-lucide=\"qr-code\" style=\"width:16px; height:16px;\"></i>\n          <span>Scan QR</span>\n        </button>\n        <button class=\"mobile-tab-btn\" onclick=\"renderMobileView('alarms')\">\n          <i data-lucide=\"bell\" style=\"width:16px; height:16px;\"></i>\n          <span>Alarms</span>\n        </button>\n        <button class=\"mobile-tab-btn\" onclick=\"renderMobileView('facilio')\">\n          <i data-lucide=\"clipboard\" style=\"width:16px; height:16px;\"></i>\n          <span>CAFM WO</span>\n        </button>\n      </div>\n    </div>\n  </div>\n</div>\n\n<!-- Scripts -->\n<script src=\"app.js\"></script>\n</body>\n</html>\n",
@@ -787,7 +786,6 @@ const EMBEDDED_ASSETS = {
 function serveStaticFile(req, res, pathname) {
   let relativePath = pathname === '/' ? 'index.html' : pathname.replace(/^\//, '');
   
-  // Check candidate paths on disk
   const candidates = [
     path.join(PUBLIC_DIR, relativePath),
     path.join(__dirname, relativePath),
@@ -804,7 +802,6 @@ function serveStaticFile(req, res, pathname) {
     }
   }
 
-  // Fallback to embedded static asset
   const cleanPath = pathname === '' ? '/' : pathname;
   if (EMBEDDED_ASSETS[cleanPath]) {
     const ext = path.extname(cleanPath === '/' ? '.html' : cleanPath).toLowerCase();
@@ -818,7 +815,642 @@ function serveStaticFile(req, res, pathname) {
   res.end(EMBEDDED_ASSETS['/index.html']);
 }
 
-  return sendError(res, 404, "Endpoint Not Found");
+const server = http.createServer(async (req, res) => {
+  const parsedUrl = url.parse(req.url, true);
+  const pathname = parsedUrl.pathname;
+  const method = req.method.toUpperCase();
+
+  if (method === 'OPTIONS') {
+    res.writeHead(204, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Gateway-Key'
+    });
+    return res.end();
+  }
+
+  try {
+    if (pathname === '/api/overview' && method === 'GET') {
+      const totalAssets = db.assets.length;
+      const healthyAssets = db.assets.filter(a => a.status === 'HEALTHY').length;
+      const warningAssets = db.assets.filter(a => a.status === 'WARNING').length;
+      const criticalAssets = db.assets.filter(a => a.status === 'CRITICAL').length;
+      const offlineAssets = db.assets.filter(a => a.status === 'OFFLINE').length;
+
+      const totalGateways = db.gateways.length;
+      const onlineGateways = db.gateways.filter(g => g.status === 'ONLINE').length;
+      
+      const totalSensors = db.assets.reduce((sum, a) => sum + (a.sensors?.length || 0), 0);
+      const activeAlarms = db.alarms.filter(a => a.status === 'ACTIVE' || a.status === 'FACILIO_WO_CREATED');
+
+      return sendJson(res, 200, {
+        stats: {
+          totalAssets,
+          healthyAssets,
+          warningAssets,
+          criticalAssets,
+          offlineAssets,
+          totalGateways,
+          onlineGateways,
+          totalSensors,
+          activeAlarmsCount: activeAlarms.length,
+          facilioDispatchesCount: db.facilioLogs.length
+        },
+        activeAlarms: activeAlarms.slice(0, 8),
+        recentLogs: db.facilioLogs.slice(0, 8),
+        gateways: db.gateways,
+        assetsSummary: db.assets.map(a => ({
+          id: a.id,
+          name: a.name,
+          tag: a.tag,
+          category: a.category,
+          location: a.location,
+          criticality: a.criticality,
+          status: a.status,
+          stateflowState: a.stateflowState,
+          sensorsCount: a.sensors.length,
+          sensors: a.sensors
+        }))
+      });
+    }
+
+    if (pathname === '/api/assets' && method === 'GET') {
+      return sendJson(res, 200, db.assets);
+    }
+
+    if (pathname === '/api/assets' && method === 'POST') {
+      const body = await parseJsonBody(req);
+      if (!body.name || !body.tag) {
+        return sendError(res, 400, 'Asset name and tag are required');
+      }
+
+      const newAsset = {
+        id: `AST-${Math.floor(100 + Math.random() * 900)}`,
+        name: body.name,
+        tag: body.tag,
+        category: body.category || 'Mechanical',
+        location: body.location || 'Building HQ',
+        building: body.building || 'Main Tower',
+        floor: body.floor || 'Level 1',
+        criticality: body.criticality || 'MEDIUM',
+        gatewayId: body.gatewayId || (db.gateways[0] ? db.gateways[0].id : null),
+        status: 'HEALTHY',
+        stateflowState: 'NORMAL',
+        customFields: body.customFields || {},
+        sensors: body.sensors && body.sensors.length > 0 ? body.sensors : [
+          {
+            id: `SNS-${Date.now().toString().slice(-4)}-1`,
+            name: `${body.name} Temperature`,
+            type: 'temperature',
+            unit: '°C',
+            currentValue: 24.0,
+            warningHigh: 45.0,
+            criticalHigh: 60.0,
+            status: 'NORMAL',
+            sampleRateSec: 5,
+            customFields: {}
+          }
+        ]
+      };
+
+      db.assets.push(newAsset);
+      saveDatabase();
+      return sendJson(res, 201, newAsset);
+    }
+
+    const assetIdMatch = pathname.match(/^\/api\/assets\/([^\/]+)$/);
+    if (assetIdMatch) {
+      const assetId = assetIdMatch[1];
+      const assetIndex = db.assets.findIndex(a => a.id === assetId);
+
+      if (assetIndex === -1) {
+        return sendError(res, 404, 'Asset not found');
+      }
+
+      if (method === 'GET') {
+        const asset = db.assets[assetIndex];
+        const gateway = db.gateways.find(g => g.id === asset.gatewayId);
+        const alarms = db.alarms.filter(a => a.assetId === assetId);
+        return sendJson(res, 200, { asset, gateway, alarms });
+      }
+
+      if (method === 'PUT') {
+        const body = await parseJsonBody(req);
+        db.assets[assetIndex] = {
+          ...db.assets[assetIndex],
+          ...body,
+          id: assetId
+        };
+        saveDatabase();
+        return sendJson(res, 200, db.assets[assetIndex]);
+      }
+
+      if (method === 'DELETE') {
+        const removed = db.assets.splice(assetIndex, 1)[0];
+        saveDatabase();
+        return sendJson(res, 200, { success: true, removed });
+      }
+    }
+
+    const assetSensorMatch = pathname.match(/^\/api\/assets\/([^\/]+)\/sensors$/);
+    if (assetSensorMatch && method === 'POST') {
+      const assetId = assetSensorMatch[1];
+      const asset = db.assets.find(a => a.id === assetId);
+      if (!asset) return sendError(res, 404, 'Asset not found');
+
+      const body = await parseJsonBody(req);
+      if (!body.name || !body.type) {
+        return sendError(res, 400, 'Sensor name and type are required');
+      }
+
+      const newSensor = {
+        id: `SNS-${Date.now().toString().slice(-4)}-${asset.sensors.length + 1}`,
+        name: body.name,
+        type: body.type,
+        unit: body.unit || '°C',
+        currentValue: body.currentValue !== undefined ? Number(body.currentValue) : 20.0,
+        warningHigh: body.warningHigh !== undefined && body.warningHigh !== '' ? Number(body.warningHigh) : undefined,
+        criticalHigh: body.criticalHigh !== undefined && body.criticalHigh !== '' ? Number(body.criticalHigh) : undefined,
+        warningLow: body.warningLow !== undefined && body.warningLow !== '' ? Number(body.warningLow) : undefined,
+        criticalLow: body.criticalLow !== undefined && body.criticalLow !== '' ? Number(body.criticalLow) : undefined,
+        status: 'NORMAL',
+        sampleRateSec: body.sampleRateSec || 5,
+        customFields: body.customFields || {}
+      };
+
+      asset.sensors.push(newSensor);
+      saveDatabase();
+      return sendJson(res, 201, { asset, sensor: newSensor });
+    }
+
+    if (pathname === '/api/gateways' && method === 'GET') {
+      return sendJson(res, 200, db.gateways);
+    }
+
+    if (pathname === '/api/gateways' && method === 'POST') {
+      const body = await parseJsonBody(req);
+      if (!body.name) return sendError(res, 400, 'Gateway name is required');
+
+      const newGateway = {
+        id: `GW-${String(db.gateways.length + 1).padStart(2, '0')}`,
+        name: body.name,
+        model: body.model || 'Generic Industrial IoT Gateway',
+        ip: body.ip || '192.168.1.100',
+        mac: body.mac || '00:1E:C0:' + crypto.randomBytes(3).toString('hex').match(/../g).join(':').toUpperCase(),
+        protocol: body.protocol || 'HTTP',
+        port: body.port || (body.protocol === 'MQTT' ? 1883 : 8080),
+        apiKey: `gw_key_${crypto.randomBytes(6).toString('hex')}`,
+        status: 'ONLINE',
+        lastHeartbeat: new Date().toISOString(),
+        packetRate: 100,
+        location: body.location || 'Main Facility',
+        notes: body.notes || '',
+        customFields: body.customFields || {}
+      };
+
+      db.gateways.push(newGateway);
+      saveDatabase();
+      return sendJson(res, 201, newGateway);
+    }
+
+    const gwIdMatch = pathname.match(/^\/api\/gateways\/([^\/]+)$/);
+    if (gwIdMatch) {
+      const gwId = gwIdMatch[1];
+      const gwIndex = db.gateways.findIndex(g => g.id === gwId);
+      if (gwIndex === -1) return sendError(res, 404, 'Gateway not found');
+
+      if (method === 'GET') {
+        const gateway = db.gateways[gwIndex];
+        const connectedAssets = db.assets.filter(a => a.gatewayId === gwId);
+        return sendJson(res, 200, { gateway, connectedAssets });
+      }
+
+      if (method === 'PUT') {
+        const body = await parseJsonBody(req);
+        db.gateways[gwIndex] = { ...db.gateways[gwIndex], ...body, id: gwId };
+        saveDatabase();
+        return sendJson(res, 200, db.gateways[gwIndex]);
+      }
+
+      if (method === 'DELETE') {
+        const removed = db.gateways.splice(gwIndex, 1)[0];
+        saveDatabase();
+        return sendJson(res, 200, { success: true, removed });
+      }
+    }
+
+    const gwPingMatch = pathname.match(/^\/api\/gateways\/([^\/]+)\/ping$/);
+    if (gwPingMatch && method === 'POST') {
+      const gwId = gwPingMatch[1];
+      const gateway = db.gateways.find(g => g.id === gwId);
+      if (!gateway) return sendError(res, 404, 'Gateway not found');
+
+      gateway.lastHeartbeat = new Date().toISOString();
+      gateway.status = 'ONLINE';
+      saveDatabase();
+
+      return sendJson(res, 200, {
+        success: true,
+        gatewayId: gateway.id,
+        status: 'ONLINE',
+        latencyMs: Math.floor(12 + Math.random() * 24),
+        timestamp: gateway.lastHeartbeat,
+        message: `Gateway "${gateway.name}" is healthy & streaming telemetry.`
+      });
+    }
+
+    if (pathname === '/api/sensors/status' && method === 'GET') {
+      const allSensors = [];
+      db.assets.forEach(asset => {
+        const gateway = db.gateways.find(g => g.id === asset.gatewayId);
+        asset.sensors.forEach(sensor => {
+          allSensors.push({
+            sensorId: sensor.id,
+            sensorName: sensor.name,
+            sensorType: sensor.type,
+            unit: sensor.unit,
+            currentValue: sensor.currentValue,
+            status: sensor.status,
+            warningHigh: sensor.warningHigh,
+            criticalHigh: sensor.criticalHigh,
+            warningLow: sensor.warningLow,
+            criticalLow: sensor.criticalLow,
+            sampleRateSec: sensor.sampleRateSec,
+            assetId: asset.id,
+            assetName: asset.name,
+            assetTag: asset.tag,
+            assetLocation: asset.location,
+            assetCriticality: asset.criticality,
+            gatewayId: asset.gatewayId,
+            gatewayName: gateway ? gateway.name : 'Unassigned',
+            customFields: sensor.customFields || {}
+          });
+        });
+      });
+      return sendJson(res, 200, allSensors);
+    }
+
+    if (pathname === '/api/telemetry/history' && method === 'GET') {
+      const query = parsedUrl.query;
+      const assetId = query.assetId;
+      const sensorType = query.sensorType;
+      const timeframe = query.timeframe || '24h';
+
+      let filtered = [...db.telemetryHistory];
+      if (assetId) filtered = filtered.filter(t => t.assetId === assetId);
+      if (sensorType) filtered = filtered.filter(t => t.sensorType === sensorType);
+
+      const now = Date.now();
+      let durationMs = 24 * 3600 * 1000;
+      if (timeframe === '1h') durationMs = 3600 * 1000;
+      else if (timeframe === '7d') durationMs = 7 * 24 * 3600 * 1000;
+      else if (timeframe === '30d') durationMs = 30 * 24 * 3600 * 1000;
+
+      const cutoff = new Date(now - durationMs).toISOString();
+      const results = filtered.filter(t => t.timestamp >= cutoff);
+
+      let stats = null;
+      if (results.length > 0) {
+        const values = results.map(r => r.value);
+        const sum = values.reduce((a, b) => a + b, 0);
+        const mean = +(sum / values.length).toFixed(2);
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        stats = { count: values.length, mean, min, max };
+      }
+
+      return sendJson(res, 200, { results, stats, timeframe });
+    }
+
+    if (pathname === '/api/telemetry/ingest' && method === 'POST') {
+      const body = await parseJsonBody(req);
+      const readings = Array.isArray(body.readings) ? body.readings : (body.assetId ? [body] : []);
+
+      if (readings.length === 0) {
+        return sendError(res, 400, 'No telemetry readings found in payload');
+      }
+
+      const processed = [];
+      readings.forEach(r => {
+        const resObj = processTelemetryReading(r);
+        if (resObj) processed.push(resObj);
+      });
+
+      saveDatabase();
+      return sendJson(res, 200, {
+        success: true,
+        ingestedCount: processed.length,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    if (pathname === '/api/alarms' && method === 'GET') {
+      return sendJson(res, 200, db.alarms);
+    }
+
+    const almAckMatch = pathname.match(/^\/api\/alarms\/([^\/]+)\/acknowledge$/);
+    if (almAckMatch && method === 'POST') {
+      const alarmId = almAckMatch[1];
+      const alarm = db.alarms.find(a => a.id === alarmId);
+      if (!alarm) return sendError(res, 404, 'Alarm not found');
+
+      alarm.status = 'ACKNOWLEDGED';
+      alarm.acknowledgedBy = 'Duty Operator (Field Tech)';
+      alarm.acknowledgedAt = new Date().toISOString();
+      saveDatabase();
+      return sendJson(res, 200, alarm);
+    }
+
+    const almResolveMatch = pathname.match(/^\/api\/alarms\/([^\/]+)\/resolve$/);
+    if (almResolveMatch && method === 'POST') {
+      const alarmId = almResolveMatch[1];
+      const alarm = db.alarms.find(a => a.id === alarmId);
+      if (!alarm) return sendError(res, 404, 'Alarm not found');
+
+      alarm.status = 'RESOLVED';
+      alarm.resolvedAt = new Date().toISOString();
+
+      const asset = db.assets.find(a => a.id === alarm.assetId);
+      if (asset) {
+        const otherActive = db.alarms.some(a => a.assetId === asset.id && a.id !== alarmId && a.status === 'ACTIVE');
+        if (!otherActive) {
+          asset.status = 'HEALTHY';
+          asset.stateflowState = 'RESOLVED';
+        }
+      }
+
+      saveDatabase();
+      return sendJson(res, 200, alarm);
+    }
+
+    const almDispatchMatch = pathname.match(/^\/api\/alarms\/([^\/]+)\/dispatch-facilio$/);
+    if (almDispatchMatch && method === 'POST') {
+      const alarmId = almDispatchMatch[1];
+      const alarm = db.alarms.find(a => a.id === alarmId);
+      if (!alarm) return sendError(res, 404, 'Alarm not found');
+
+      const dispatchResult = dispatchAlarmToFacilio(alarm);
+      return sendJson(res, 200, { success: true, alarm, ...dispatchResult });
+    }
+
+    if (pathname === '/api/facilio/config' && method === 'GET') {
+      return sendJson(res, 200, db.facilioConfig);
+    }
+
+    if (pathname === '/api/facilio/config' && method === 'POST') {
+      const body = await parseJsonBody(req);
+      db.facilioConfig = { ...db.facilioConfig, ...body };
+      saveDatabase();
+      return sendJson(res, 200, db.facilioConfig);
+    }
+
+    if (pathname === '/api/facilio/logs' && method === 'GET') {
+      return sendJson(res, 200, db.facilioLogs);
+    }
+
+    if (pathname === '/api/facilio/test-connection' && method === 'POST') {
+      return sendJson(res, 200, {
+        success: true,
+        baseUrl: db.facilioConfig.baseUrl,
+        orgId: db.facilioConfig.orgId,
+        siteId: db.facilioConfig.siteId,
+        latencyMs: 48,
+        status: 'CONNECTED',
+        message: 'Successfully authenticated with Facilio CAFM API v3 (Connected Building Suite).'
+      });
+    }
+
+    if (pathname === '/api/facilio/dispatch' && method === 'POST') {
+      const body = await parseJsonBody(req);
+      const ticketId = `WO-FAC-${Math.floor(10000 + Math.random() * 90000)}`;
+
+      const logEntry = {
+        id: `FCL-LOG-${Date.now().toString().slice(-6)}`,
+        timestamp: new Date().toISOString(),
+        action: 'CREATE_WORK_ORDER',
+        assetId: body.assetId || 'AST-MANUAL',
+        assetName: body.assetName || 'Manual Work Order Dispatch',
+        facilioTicketId: ticketId,
+        status: 'SUCCESS',
+        requestPayload: {
+          module: 'workorder',
+          data: body
+        },
+        responsePayload: {
+          code: 201,
+          message: 'Work Order created in Facilio CAFM',
+          workOrderId: ticketId,
+          ticketNumber: `#${ticketId}`,
+          assignedGroup: body.assignedGroup || 'Facility Maintenance Team'
+        }
+      };
+
+      db.facilioLogs.unshift(logEntry);
+      saveDatabase();
+      return sendJson(res, 201, { success: true, workOrderId: ticketId, log: logEntry });
+    }
+
+    if (pathname === '/api/custom-fields' && method === 'GET') {
+      return sendJson(res, 200, db.customFields);
+    }
+
+    if (pathname === '/api/custom-fields' && method === 'POST') {
+      const body = await parseJsonBody(req);
+      if (!body.label || !body.entity) {
+        return sendError(res, 400, 'Field label and entity (ASSET, SENSOR, GATEWAY) are required');
+      }
+
+      const key = body.key || body.label.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      const newField = {
+        id: `CF-${String(db.customFields.length + 1).padStart(3, '0')}`,
+        entity: body.entity,
+        label: body.label,
+        key: key,
+        type: body.type || 'text',
+        options: body.options || [],
+        required: !!body.required,
+        defaultValue: body.defaultValue || ''
+      };
+
+      db.customFields.push(newField);
+      saveDatabase();
+      return sendJson(res, 201, newField);
+    }
+
+    const cfIdMatch = pathname.match(/^\/api\/custom-fields\/([^\/]+)$/);
+    if (cfIdMatch && method === 'DELETE') {
+      const fieldId = cfIdMatch[1];
+      db.customFields = db.customFields.filter(f => f.id !== fieldId);
+      saveDatabase();
+      return sendJson(res, 200, { success: true, fieldId });
+    }
+
+    if (pathname === '/api/stateflows' && method === 'GET') {
+      return sendJson(res, 200, db.stateflows);
+    }
+
+    if (pathname === '/api/stateflows' && method === 'POST') {
+      const body = await parseJsonBody(req);
+      const newFlow = {
+        id: `STF-${String(db.stateflows.length + 1).padStart(3, '0')}`,
+        name: body.name || 'Custom Stateflow',
+        description: body.description || '',
+        isDefault: !!body.isDefault,
+        states: body.states || [],
+        transitions: body.transitions || []
+      };
+      db.stateflows.push(newFlow);
+      saveDatabase();
+      return sendJson(res, 201, newFlow);
+    }
+
+    if (pathname === '/api/stateflows/trigger-transition' && method === 'POST') {
+      const body = await parseJsonBody(req);
+      const { assetId, targetState } = body;
+      const asset = db.assets.find(a => a.id === assetId);
+      if (!asset) return sendError(res, 404, 'Asset not found');
+
+      const prevState = asset.stateflowState;
+      asset.stateflowState = targetState;
+
+      let extraAction = null;
+      if (targetState === 'CRITICAL' || targetState === 'TICKET_DISPATCHED') {
+        let alarm = db.alarms.find(a => a.assetId === asset.id && a.status === 'ACTIVE');
+        if (!alarm) {
+          alarm = {
+            id: `ALM-${Math.floor(1000 + Math.random() * 9000)}`,
+            assetId: asset.id,
+            assetName: asset.name,
+            sensorId: asset.sensors[0]?.id || 'SNS-SYS',
+            sensorType: asset.sensors[0]?.type || 'system',
+            severity: 'CRITICAL',
+            message: `Manual state transition triggered to ${targetState}`,
+            triggerValue: 99.9,
+            threshold: 50.0,
+            timestamp: new Date().toISOString(),
+            status: 'ACTIVE',
+            acknowledgedBy: null,
+            facilioTicketId: null,
+            facilioSyncTime: null
+          };
+          db.alarms.unshift(alarm);
+        }
+        if (targetState === 'TICKET_DISPATCHED' && !alarm.facilioTicketId) {
+          extraAction = dispatchAlarmToFacilio(alarm);
+        }
+      } else if (targetState === 'RESOLVED' || targetState === 'NORMAL') {
+        asset.status = 'HEALTHY';
+        db.alarms.filter(a => a.assetId === asset.id && a.status !== 'RESOLVED').forEach(a => {
+          a.status = 'RESOLVED';
+          a.resolvedAt = new Date().toISOString();
+        });
+      }
+
+      saveDatabase();
+      return sendJson(res, 200, {
+        success: true,
+        assetId: asset.id,
+        prevState,
+        currentState: targetState,
+        extraAction
+      });
+    }
+
+    if (pathname === '/api/simulator' && method === 'GET') {
+      return sendJson(res, 200, db.simulatorConfig);
+    }
+
+    if (pathname === '/api/simulator/toggle' && method === 'POST') {
+      db.simulatorConfig.running = !db.simulatorConfig.running;
+      saveDatabase();
+      return sendJson(res, 200, db.simulatorConfig);
+    }
+
+    if (pathname === '/api/simulator/inject-fault' && method === 'POST') {
+      const body = await parseJsonBody(req);
+      const { assetId, sensorType, value, faultName } = body;
+      
+      const fault = {
+        id: `FLT-${Date.now().toString().slice(-4)}`,
+        assetId: assetId || 'AST-101',
+        sensor: sensorType || 'temperature',
+        value: Number(value || 92.5),
+        faultName: faultName || 'Overheat Failure Simulation',
+        timestamp: new Date().toISOString()
+      };
+
+      db.simulatorConfig.activeFaults = db.simulatorConfig.activeFaults.filter(f => f.assetId !== fault.assetId);
+      db.simulatorConfig.activeFaults.push(fault);
+
+      processTelemetryReading({
+        assetId: fault.assetId,
+        sensorType: fault.sensor,
+        value: fault.value,
+        timestamp: fault.timestamp
+      });
+
+      saveDatabase();
+      return sendJson(res, 200, { success: true, fault, simulator: db.simulatorConfig });
+    }
+
+    if (pathname === '/api/simulator/clear-faults' && method === 'POST') {
+      db.simulatorConfig.activeFaults = [];
+      db.assets.forEach(asset => {
+        asset.status = 'HEALTHY';
+        asset.stateflowState = 'NORMAL';
+        asset.sensors.forEach(s => {
+          s.status = 'NORMAL';
+          if (s.type === 'temperature') s.currentValue = 12.0;
+          if (s.type === 'vibration') s.currentValue = 1.8;
+          if (s.type === 'pressure') s.currentValue = 6.2;
+          if (s.type === 'current') s.currentValue = 150.0;
+          if (s.type === 'humidity') s.currentValue = 50.0;
+        });
+      });
+      saveDatabase();
+      return sendJson(res, 200, { success: true, message: 'All simulation faults cleared and assets normalized.' });
+    }
+
+    if (pathname === '/api/users' && method === 'GET') {
+      return sendJson(res, 200, db.users);
+    }
+
+    if (pathname === '/api/users' && method === 'POST') {
+      const body = await parseJsonBody(req);
+      if (!body.name || !body.email) return sendError(res, 400, 'Name and email are required');
+
+      const newUser = {
+        id: `USR-${String(db.users.length + 1).padStart(2, '0')}`,
+        name: body.name,
+        email: body.email,
+        role: body.role || 'OPERATOR',
+        department: body.department || 'Facility Management',
+        status: 'ACTIVE'
+      };
+      db.users.push(newUser);
+      saveDatabase();
+      return sendJson(res, 201, newUser);
+    }
+
+    const userIdMatch = pathname.match(/^\/api\/users\/([^\/]+)$/);
+    if (userIdMatch && method === 'DELETE') {
+      const userId = userIdMatch[1];
+      db.users = db.users.filter(u => u.id !== userId);
+      saveDatabase();
+      return sendJson(res, 200, { success: true, userId });
+    }
+
+  } catch (err) {
+    console.error('[API ERROR]', pathname, err);
+    return sendError(res, 500, 'Internal Server Error: ' + err.message);
+  }
+
+  // Handle static assets (HTML/CSS/JS)
+  if (method === 'GET') {
+    return serveStaticFile(req, res, pathname);
+  }
+
+  return sendError(res, 404, 'Endpoint Not Found');
 });
 
 server.listen(PORT, () => {
