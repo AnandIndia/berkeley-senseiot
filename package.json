@@ -1,0 +1,24 @@
+{
+  "name": "berkeley-senseiot",
+  "version": "1.0.0",
+  "description": "Berkeley SenseIoT - IoT Asset Telemetry & CAFM Integration Portal",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "iot",
+    "telemetry",
+    "asset-monitoring",
+    "facilio",
+    "cafm",
+    "sensors",
+    "berkeley"
+  ],
+  "author": "Berkeley Facility Services",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
